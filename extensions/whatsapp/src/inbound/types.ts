@@ -219,23 +219,38 @@ export type DeprecatedWebInboundAdmissionTopLevelFields = {
   chatType: "direct" | "group";
 };
 
-type WebInboundMessageCommon = DeprecatedWebInboundAdmissionTopLevelFields & {
-  admission?: WhatsAppInboundAdmission;
+type WebInboundCallbackMessageCommon = {
   quote?: WhatsAppInboundQuote;
   group?: WhatsAppInboundGroupContext;
   wasMentioned?: boolean;
 };
 
-export type WebInboundCallbackMessage = WebInboundMessageCommon & {
-  event: WhatsAppInboundEvent;
-  payload: WhatsAppInboundPayload;
-  platform: WhatsAppInboundPlatform;
+type WebInboundCallbackAdmissionFields =
+  | ({ admission: WhatsAppInboundAdmission } & Partial<DeprecatedWebInboundAdmissionTopLevelFields>)
+  | ({ admission?: WhatsAppInboundAdmission } & DeprecatedWebInboundAdmissionTopLevelFields);
+
+export type WebInboundCallbackMessage = WebInboundCallbackMessageCommon &
+  WebInboundCallbackAdmissionFields & {
+    event: WhatsAppInboundEvent;
+    payload: WhatsAppInboundPayload;
+    platform: WhatsAppInboundPlatform;
+  };
+
+export type WebInboundMessage = WebInboundCallbackMessage &
+  DeprecatedWebInboundAdmissionTopLevelFields &
+  DeprecatedWebInboundMessageFlatAliases;
+
+export type AdmittedWebInboundMessage = Omit<
+  WebInboundMessage,
+  keyof DeprecatedWebInboundAdmissionTopLevelFields | "admission"
+> & {
+  admission: WhatsAppInboundAdmission;
 };
 
-export type WebInboundMessage = WebInboundCallbackMessage & DeprecatedWebInboundMessageFlatAliases;
-
-export type LegacyFlatWebInboundMessage = WebInboundMessageCommon &
-  DeprecatedWebInboundMessageFlatAliases & {
+export type LegacyFlatWebInboundMessage = DeprecatedWebInboundAdmissionTopLevelFields &
+  Pick<WebInboundCallbackMessageCommon, "wasMentioned"> & {
+    admission?: WhatsAppInboundAdmission;
+  } & DeprecatedWebInboundMessageFlatAliases & {
     event?: never;
     payload?: never;
     platform?: never;
